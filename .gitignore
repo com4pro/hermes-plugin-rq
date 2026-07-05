@@ -1,0 +1,20 @@
+# Local, private targets (user config).
+# Ignored so a user's own targets are never published and never conflict on
+# `git pull`. The plugin falls back to rq-targets.example.yaml when absent.
+rq-targets.yaml
+
+# Optional per-user i18n override (the tracked rq-i18n.yaml ships with the plugin)
+/rq-i18n.local.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+.env

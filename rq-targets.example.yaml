@@ -1,0 +1,120 @@
+# ============================================================================
+#  rq - targets catalog (EXAMPLE)
+#  Copy to  rq-targets.yaml  (git-ignored) and edit - or the plugin reads this
+#  example directly if no rq-targets.yaml exists. A copy in ~/.hermes/ overrides
+#  the plugin-dir one. /rq add|del writes to rq-targets.yaml (never this example).
+# ============================================================================
+#  HOW A TARGET WORKS
+#   - Invoke:   /rq <name> : <payload>
+#   - params:   1 -> whole payload ; many -> positional "a | b" OR named "k=v | k=v"
+#   - {param}   placeholder -> replaced by the param value (url/query/headers/body/cmd)
+#   - a param NOT used as {..} is sent automatically (query for GET, JSON for POST)
+#   - ${VAR}    -> environment variable (put SECRETS in ~/.hermes/.env, reference ${VAR})
+# ============================================================================
+
+defaults:
+  timeout: 20
+  max_output: 3000
+  sep: "|"
+  # lang: fr             # force rq messages language (else config.yaml `language`)
+  # ── SSRF hardening ──
+  block_link_local: true # block link-local / cloud-metadata (169.254.x, fe80::) - keep true
+  follow_redirects: false# refuse HTTP redirects (a redirect can bypass the host check)
+  deny_private: false    # true = also block RFC1918/loopback (breaks internal targets)
+  # deny_hosts: ["evil.example"]
+
+targets:
+
+  # [TEMPLATE] kb - semantic search in your knowledge base (e.g. a Qdrant search API)
+  #   Customize: url = your search endpoint. Usage: /rq kb : your query
+  kb:
+    type: http
+    method: GET
+    url: "http://<your-search-service>:8080/search"
+    params: [q]
+
+  # [TEMPLATE] n8n - trigger a workflow via a Webhook node
+  #   Customize: url = your n8n webhook (Production URL); body fields = your workflow inputs.
+  #   Usage: /rq n8n : myproject | prod
+  n8n:
+    type: http
+    method: POST
+    url: "http://<your-n8n-host>:5678/webhook/<your-path>"
+    send: json
+    params: [project, env]
+
+  # [TEMPLATE] ha - Home Assistant: read an entity state
+  #   Secret: put HASS_TOKEN=... in ~/.hermes/.env
+  #   Usage: /rq ha : sensor.living_room_temperature
+  ha:
+    type: http
+    method: GET
+    url: "http://<your-hass-host>:8123/api/states/{entity}"
+    headers: { Authorization: "Bearer ${HASS_TOKEN}" }
+    params: [entity]
+
+  # [TEMPLATE] gh - GitHub: latest release of a repo (public works without a token)
+  #   Secret (optional): GITHUB_TOKEN=... in ~/.hermes/.env for private/higher limits
+  #   Usage: /rq gh : NousResearch | hermes-agent
+  gh:
+    type: http
+    method: GET
+    url: "https://api.github.com/repos/{owner}/{repo}/releases/latest"
+    headers:
+      Accept: "application/vnd.github+json"
+      Authorization: "Bearer ${GITHUB_TOKEN}"   # remove for public repos w/o token
+    params: [owner, repo]
+
+  # [TEMPLATE] notify - send a chat notification (Discord/Slack webhook)
+  #   Customize: url = your webhook. Body field: "content" (Discord) / "text" (Slack).
+  #   Usage: /rq notify : Deployment finished
+  notify:
+    type: http
+    method: POST
+    url: "https://discord.com/api/webhooks/<id>/<token>"
+    send: json
+    body: { content: "{msg}" }
+    params: [msg]
+
+  # [ACTIVE] weather - public weather (wttr.in), no auth
+  #   Usage: /rq weather : Paris | 3     (city | format)
+  weather:
+    type: http
+    method: GET
+    url: "https://wttr.in/{city}"
+    query: { format: "{fmt}" }
+    params: [city, fmt]
+
+  # [ACTIVE] dns - DNS over HTTPS (Cloudflare), no auth
+  #   Usage: /rq dns : example.com | A
+  dns:
+    type: http
+    method: GET
+    url: "https://cloudflare-dns.com/dns-query"
+    query: { name: "{name}", type: "{rtype}" }
+    headers: { accept: "application/dns-json" }
+    params: [name, rtype]
+
+  # ══════════════════════ EXEC (system commands) ═════════════════════════
+  #  Inert until  allow_exec: true. Executed via argv (no shell); "--" ends
+  #  option parsing so a {param} starting with "-" is a value, not a flag.
+  #  NEVER put {param} inside ["sh","-c","… {param} …"].
+  # ────────────────────────────────────────────────────────────────────────
+
+  # [TEMPLATE] disk - free space of a path.  Usage: /rq disk : /var
+  disk:
+    type: exec
+    cmd: ["df", "-h", "--", "{path}"]
+    params: [path]
+
+  # [TEMPLATE] logs - last lines of a container's logs.  Usage: /rq logs : <container>
+  logs:
+    type: exec
+    cmd: ["docker", "logs", "--tail", "40", "--", "{name}"]
+    params: [name]
+
+  # [TEMPLATE] restart - restart a container.  Usage: /rq restart : <container>
+  restart:
+    type: exec
+    cmd: ["docker", "restart", "--", "{name}"]
+    params: [name]

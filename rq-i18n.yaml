@@ -1,0 +1,213 @@
+# rq plugin - translations. Drop at ~/.hermes/rq-i18n.yaml
+#
+# Active language = config.yaml `language` (same setting the WebUI exposes)
+#   -> fallback rq-targets.yaml `defaults.lang` -> "en".
+# English is built into the plugin; any missing key falls back to English
+# (per key), and "zh-Hant" falls back to "zh". Same model as the WebUI.
+#
+# WebUI language codes to provision (14): en fr es de it pt ru pl tr vi ja ko zh zh-Hant
+#   filled below: fr es de it pt  (reliable)
+#   TODO (fall back to English until translated - native review recommended):
+#         ru pl tr vi ja ko zh zh-Hant
+#   To add one: copy the `fr:` block, change the code, translate the values.
+#   Keep %s / %d placeholders and the /rq command tokens unchanged.
+
+fr:
+  help: |-
+    rq - routeur de requêtes HTTP et de commandes système (un ou plusieurs paramètres).
+
+    Usage : /rq <cible> : <payload>
+      /rq list                        - liste les cibles
+      /rq show <cible>                - affiche une cible
+      /rq add <nom> <GET|POST> <url> [p1 p2 …]   - ajoute une cible HTTP
+      /rq del <cible>                 - supprime une cible
+      /rq help                        - cette aide
+    Exemples : /rq kb : hôte de prod   |   /rq weather : Paris | 3
+  expect_one: "cette cible attend 1 paramètre : %s"
+  missing: "paramètre(s) manquant(s) : %s (attendus : %s)"
+  yaml_unavailable: "PyYAML indisponible dans le runtime."
+  unreadable: "rq-targets.yaml illisible : %s"
+  net_error: "erreur réseau : %s"
+  url_invalid: "URL de cible invalide."
+  host_denied: "hôte refusé par la politique : %s"
+  blocked_linklocal: "adresse link-local/métadonnées bloquée (%s)."
+  blocked_private: "adresse privée/loopback bloquée (%s)."
+  redirect_blocked: "redirection bloquée (HTTP %s) - mettre follow_redirects: true pour l'autoriser."
+  exec_disabled: "exec désactivé - mettre 'allow_exec: true' dans rq-targets.yaml."
+  exec_invalid: "cible exec invalide : 'cmd' doit être une liste (argv), ex. [\"df\",\"-h\",\"{path}\"]."
+  cmd_timeout: "commande expirée (%ss)."
+  cmd_notfound: "commande introuvable : %s"
+  exec_error: "erreur exec : %s"
+  no_output: "(pas de sortie, code %s)"
+  truncated: "\n… [tronqué à %d caractères]"
+  no_targets: "aucune cible. Ajoute : /rq add <nom> <GET|POST> <url> [params]"
+  targets_header: "Cibles :"
+  usage_show: "Usage : /rq show <cible>"
+  unknown_target_mgmt: "cible inconnue : %s"
+  usage_add: "Usage : /rq add <nom> <GET|POST> <url> [p1 p2 …]  (HTTP uniquement)"
+  method_invalid: "method doit être GET ou POST."
+  target_added: "cible '%s' ajoutée (HTTP %s, params : %s)."
+  write_failed: "échec d'écriture : %s"
+  usage_del: "Usage : /rq del <cible>"
+  target_removed: "cible '%s' supprimée."
+  unknown_target: "cible inconnue : '%s'. Disponibles : %s"
+
+es:
+  help: |-
+    rq - enrutador de solicitudes HTTP y comandos del sistema (uno o varios parámetros).
+
+    Uso: /rq <objetivo> : <payload>
+      /rq list                        - listar objetivos
+      /rq show <objetivo>             - mostrar un objetivo
+      /rq add <nombre> <GET|POST> <url> [p1 p2 …]   - añadir un objetivo HTTP
+      /rq del <objetivo>              - eliminar un objetivo
+      /rq help                        - esta ayuda
+    Ejemplos: /rq kb : host de prod   |   /rq weather : Paris | 3
+  expect_one: "este objetivo espera 1 parámetro: %s"
+  missing: "parámetro(s) faltante(s): %s (esperados: %s)"
+  yaml_unavailable: "PyYAML no disponible en el runtime."
+  unreadable: "rq-targets.yaml ilegible: %s"
+  net_error: "error de red: %s"
+  url_invalid: "URL de objetivo inválida."
+  host_denied: "host denegado por la política: %s"
+  blocked_linklocal: "dirección link-local/metadatos bloqueada (%s)."
+  blocked_private: "dirección privada/loopback bloqueada (%s)."
+  redirect_blocked: "redirección bloqueada (HTTP %s) - poner follow_redirects: true para permitir."
+  exec_disabled: "exec desactivado - poner 'allow_exec: true' en rq-targets.yaml."
+  exec_invalid: "objetivo exec inválido: 'cmd' debe ser una lista (argv), p. ej. [\"df\",\"-h\",\"{path}\"]."
+  cmd_timeout: "el comando expiró (%ss)."
+  cmd_notfound: "comando no encontrado: %s"
+  exec_error: "error de exec: %s"
+  no_output: "(sin salida, código %s)"
+  truncated: "\n… [truncado a %d caracteres]"
+  no_targets: "no hay objetivos. Añade: /rq add <nombre> <GET|POST> <url> [params]"
+  targets_header: "Objetivos:"
+  usage_show: "Uso: /rq show <objetivo>"
+  unknown_target_mgmt: "objetivo desconocido: %s"
+  usage_add: "Uso: /rq add <nombre> <GET|POST> <url> [p1 p2 …]  (solo HTTP)"
+  method_invalid: "method debe ser GET o POST."
+  target_added: "objetivo '%s' añadido (HTTP %s, params: %s)."
+  write_failed: "fallo de escritura: %s"
+  usage_del: "Uso: /rq del <objetivo>"
+  target_removed: "objetivo '%s' eliminado."
+  unknown_target: "objetivo desconocido: '%s'. Disponibles: %s"
+
+de:
+  help: |-
+    rq - Router für HTTP-Anfragen und Systembefehle (ein oder mehrere Parameter).
+
+    Verwendung: /rq <ziel> : <payload>
+      /rq list                        - Ziele auflisten
+      /rq show <ziel>                 - ein Ziel anzeigen
+      /rq add <name> <GET|POST> <url> [p1 p2 …]   - HTTP-Ziel hinzufügen
+      /rq del <ziel>                  - ein Ziel entfernen
+      /rq help                        - diese Hilfe
+    Beispiele: /rq kb : Prod-Host   |   /rq weather : Paris | 3
+  expect_one: "dieses Ziel erwartet 1 Parameter: %s"
+  missing: "fehlende(r) Parameter: %s (erwartet: %s)"
+  yaml_unavailable: "PyYAML im Runtime nicht verfügbar."
+  unreadable: "rq-targets.yaml nicht lesbar: %s"
+  net_error: "Netzwerkfehler: %s"
+  url_invalid: "ungültige Ziel-URL."
+  host_denied: "Host durch Richtlinie verweigert: %s"
+  blocked_linklocal: "Link-local-/Metadaten-Adresse blockiert (%s)."
+  blocked_private: "private/Loopback-Adresse blockiert (%s)."
+  redirect_blocked: "Weiterleitung blockiert (HTTP %s) - follow_redirects: true setzen, um sie zu erlauben."
+  exec_disabled: "exec deaktiviert - 'allow_exec: true' in rq-targets.yaml setzen."
+  exec_invalid: "ungültiges exec-Ziel: 'cmd' muss eine Liste (argv) sein, z. B. [\"df\",\"-h\",\"{path}\"]."
+  cmd_timeout: "Befehl überschritt Zeitlimit (%ss)."
+  cmd_notfound: "Befehl nicht gefunden: %s"
+  exec_error: "exec-Fehler: %s"
+  no_output: "(keine Ausgabe, Code %s)"
+  truncated: "\n… [gekürzt auf %d Zeichen]"
+  no_targets: "keine Ziele. Hinzufügen: /rq add <name> <GET|POST> <url> [params]"
+  targets_header: "Ziele:"
+  usage_show: "Verwendung: /rq show <ziel>"
+  unknown_target_mgmt: "unbekanntes Ziel: %s"
+  usage_add: "Verwendung: /rq add <name> <GET|POST> <url> [p1 p2 …]  (nur HTTP)"
+  method_invalid: "method muss GET oder POST sein."
+  target_added: "Ziel '%s' hinzugefügt (HTTP %s, params: %s)."
+  write_failed: "Schreibfehler: %s"
+  usage_del: "Verwendung: /rq del <ziel>"
+  target_removed: "Ziel '%s' entfernt."
+  unknown_target: "unbekanntes Ziel: '%s'. Verfügbar: %s"
+
+it:
+  help: |-
+    rq - router di richieste HTTP e comandi di sistema (uno o più parametri).
+
+    Uso: /rq <destinazione> : <payload>
+      /rq list                        - elenca le destinazioni
+      /rq show <destinazione>         - mostra una destinazione
+      /rq add <nome> <GET|POST> <url> [p1 p2 …]   - aggiunge una destinazione HTTP
+      /rq del <destinazione>          - rimuove una destinazione
+      /rq help                        - questo aiuto
+    Esempi: /rq kb : host di prod   |   /rq weather : Paris | 3
+  expect_one: "questa destinazione richiede 1 parametro: %s"
+  missing: "parametro/i mancante/i: %s (attesi: %s)"
+  yaml_unavailable: "PyYAML non disponibile nel runtime."
+  unreadable: "rq-targets.yaml illeggibile: %s"
+  net_error: "errore di rete: %s"
+  url_invalid: "URL di destinazione non valido."
+  host_denied: "host negato dalla policy: %s"
+  blocked_linklocal: "indirizzo link-local/metadati bloccato (%s)."
+  blocked_private: "indirizzo privato/loopback bloccato (%s)."
+  redirect_blocked: "reindirizzamento bloccato (HTTP %s) - impostare follow_redirects: true per consentirlo."
+  exec_disabled: "exec disattivato - impostare 'allow_exec: true' in rq-targets.yaml."
+  exec_invalid: "destinazione exec non valida: 'cmd' deve essere una lista (argv), es. [\"df\",\"-h\",\"{path}\"]."
+  cmd_timeout: "comando scaduto (%ss)."
+  cmd_notfound: "comando non trovato: %s"
+  exec_error: "errore exec: %s"
+  no_output: "(nessun output, codice %s)"
+  truncated: "\n… [troncato a %d caratteri]"
+  no_targets: "nessuna destinazione. Aggiungi: /rq add <nome> <GET|POST> <url> [params]"
+  targets_header: "Destinazioni:"
+  usage_show: "Uso: /rq show <destinazione>"
+  unknown_target_mgmt: "destinazione sconosciuta: %s"
+  usage_add: "Uso: /rq add <nome> <GET|POST> <url> [p1 p2 …]  (solo HTTP)"
+  method_invalid: "method deve essere GET o POST."
+  target_added: "destinazione '%s' aggiunta (HTTP %s, params: %s)."
+  write_failed: "scrittura fallita: %s"
+  usage_del: "Uso: /rq del <destinazione>"
+  target_removed: "destinazione '%s' rimossa."
+  unknown_target: "destinazione sconosciuta: '%s'. Disponibili: %s"
+
+pt:
+  help: |-
+    rq - roteador de requisições HTTP e comandos de sistema (um ou mais parâmetros).
+
+    Uso: /rq <alvo> : <payload>
+      /rq list                        - listar alvos
+      /rq show <alvo>                 - mostrar um alvo
+      /rq add <nome> <GET|POST> <url> [p1 p2 …]   - adicionar um alvo HTTP
+      /rq del <alvo>                  - remover um alvo
+      /rq help                        - esta ajuda
+    Exemplos: /rq kb : host de prod   |   /rq weather : Paris | 3
+  expect_one: "este alvo espera 1 parâmetro: %s"
+  missing: "parâmetro(s) em falta: %s (esperados: %s)"
+  yaml_unavailable: "PyYAML indisponível no runtime."
+  unreadable: "rq-targets.yaml ilegível: %s"
+  net_error: "erro de rede: %s"
+  url_invalid: "URL de alvo inválido."
+  host_denied: "host negado pela política: %s"
+  blocked_linklocal: "endereço link-local/metadados bloqueado (%s)."
+  blocked_private: "endereço privado/loopback bloqueado (%s)."
+  redirect_blocked: "redirecionamento bloqueado (HTTP %s) - definir follow_redirects: true para permitir."
+  exec_disabled: "exec desativado - definir 'allow_exec: true' em rq-targets.yaml."
+  exec_invalid: "alvo exec inválido: 'cmd' deve ser uma lista (argv), ex. [\"df\",\"-h\",\"{path}\"]."
+  cmd_timeout: "comando expirou (%ss)."
+  cmd_notfound: "comando não encontrado: %s"
+  exec_error: "erro de exec: %s"
+  no_output: "(sem saída, código %s)"
+  truncated: "\n… [truncado em %d caracteres]"
+  no_targets: "sem alvos. Adicione: /rq add <nome> <GET|POST> <url> [params]"
+  targets_header: "Alvos:"
+  usage_show: "Uso: /rq show <alvo>"
+  unknown_target_mgmt: "alvo desconhecido: %s"
+  usage_add: "Uso: /rq add <nome> <GET|POST> <url> [p1 p2 …]  (apenas HTTP)"
+  method_invalid: "method deve ser GET ou POST."
+  target_added: "alvo '%s' adicionado (HTTP %s, params: %s)."
+  write_failed: "falha ao escrever: %s"
+  usage_del: "Uso: /rq del <alvo>"
+  target_removed: "alvo '%s' removido."
+  unknown_target: "alvo desconhecido: '%s'. Disponíveis: %s"

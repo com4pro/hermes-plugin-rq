@@ -1,0 +1,4 @@
+name: rq
+version: 1.0.0
+description: "HTTP request & system-command router for Hermes (zero-LLM). /rq <target> : <payload> (one or more parameters) routes to an HTTP endpoint OR a system command (exec via argv) declared in rq-targets.yaml, and returns the raw output - without going through the LLM. Works in the CLI and on the gateway (Telegram, WebUI)."
+author: "SYNGULIA - com4pro"
