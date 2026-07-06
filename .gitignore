@@ -6,10 +6,12 @@ rq-targets.yaml
 # Optional per-user i18n override (the tracked rq-i18n.yaml ships with the plugin)
 /rq-i18n.local.yaml
 
-# Python
+# Python / packaging
 __pycache__/
 *.py[cod]
 *.egg-info/
+build/
+dist/
 
 # OS / editors
 .DS_Store

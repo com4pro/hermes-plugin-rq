@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hermes-plugin-rq"
+version = "1.0.0"
+description = "Zero-LLM HTTP request & system-command router for Hermes Agent (the /rq slash command)."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "SYNGULIA (com4pro)", email = "dev@syngulia.com" }]
+keywords = [
+  "hermes", "hermes-agent", "plugin", "nous-research",
+  "zero-llm", "automation", "telegram", "slash-command", "router",
+]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "Environment :: Plugins",
+]
+# PyYAML is provided by the Hermes runtime; keep deps empty to avoid conflicts.
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/com4pro/hermes-plugin-rq"
+Repository = "https://github.com/com4pro/hermes-plugin-rq"
+Issues = "https://github.com/com4pro/hermes-plugin-rq/issues"
+
+# How Hermes discovers a pip-installed plugin: it scans this entry-point group,
+# loads the referenced MODULE, and calls its register(ctx).
+[project.entry-points."hermes_agent.plugins"]
+rq = "hermes_plugin_rq"
+
+# Flat layout: the repo root IS the importable package `hermes_plugin_rq`.
+# (Keeps `git clone → ~/.hermes/plugins/rq` working, and ships a pip package.)
+[tool.setuptools]
+packages = ["hermes_plugin_rq"]
+
+[tool.setuptools.package-dir]
+hermes_plugin_rq = "."
+
+# Ship ONLY these data files (never the private rq-targets.yaml, even if present locally).
+[tool.setuptools.package-data]
+hermes_plugin_rq = ["rq-i18n.yaml", "rq-targets.example.yaml", "plugin.yaml"]
