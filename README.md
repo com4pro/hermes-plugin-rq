@@ -16,7 +16,7 @@ your chat.
 
 Hermes is great at reasoning and orchestration, but some chat actions do not need an LLM at all.
 
-When the task is already well-defined — for example:
+When the task is already well-defined - for example:
 
 - querying an internal API,
 - triggering a webhook,
@@ -27,7 +27,7 @@ sending the request through the full model/tool loop adds avoidable latency, tok
 
 `/rq` provides a **direct, deterministic, zero-LLM path** from chat to action.
 
-It lets you stay in the same interface — **Hermes WebUI, Telegram, or another gateway channel** — while routing a short command such as:
+It lets you stay in the same interface - **Hermes WebUI, Telegram, or another gateway channel** - while routing a short command such as:
 
 ```text
 /rq kb : production server host
@@ -49,9 +49,9 @@ to a predeclared HTTP target or system command and returning the raw result imme
 
 ## Benefits
 
-- **Lower latency** — no LLM round-trip
+- **Lower latency** - no LLM round-trip
 - **No token usage on the execution path**
-- **Deterministic behavior** — same input, same configured target
+- **Deterministic behavior** - same input, same configured target
 - **Reduced rate-limit pressure** on model providers
 - **Better fit for simple, repeatable micro-actions**
 
@@ -87,8 +87,8 @@ The plugin is **self-contained**: it ships `rq-targets.example.yaml` and
 **Via git** (creates the plugins dir if missing):
 ```bash
 mkdir -p ~/.hermes/plugins
-git clone https://github.com/<you>/hermes-plugin-rq ~/.hermes/plugins/rq
-cp ~/.hermes/plugins/rq/rq-targets.example.yaml ~/.hermes/plugins/rq/rq-targets.yaml   # optional: your own targets
+git clone https://github.com/com4pro/hermes-plugin-rq ~/.hermes/plugins/rq
+cp ~/.hermes/plugins/rq/rq-targets.example.yaml ~/.hermes/plugins/rq/rq-targets.yaml   # create your targets
 hermes plugins enable rq
 # restart Hermes (gateway + WebUI)
 ```
