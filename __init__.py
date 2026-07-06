@@ -87,7 +87,7 @@ def _expand_env(s: str) -> str:
     return _ENV_RE.sub(lambda m: os.environ.get(m.group(1), ""), s)
 
 
-# ── SSRF hardening ─────────────────────────────────────────────────────────
+# -- SSRF hardening ---------------------------------------------------------
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
     """Refuse HTTP redirects (a redirect can bypass the URL host check)."""
 
@@ -584,4 +584,3 @@ def register(ctx) -> None:
         description="HTTP request & system-command router (zero-LLM): /rq <target> : <payload>.",
         args_hint="<target> : <payload>",
     )
-    

@@ -17,7 +17,7 @@ defaults:
   max_output: 3000
   sep: "|"
   # lang: fr             # force rq messages language (else config.yaml `language`)
-  # ── SSRF hardening ──
+  # --SSRF hardening --
   block_link_local: true # block link-local / cloud-metadata (169.254.x, fe80::) - keep true
   follow_redirects: false# refuse HTTP redirects (a redirect can bypass the host check)
   deny_private: false    # true = also block RFC1918/loopback (breaks internal targets)
@@ -100,7 +100,7 @@ targets:
   #  Inert until  allow_exec: true. Executed via argv (no shell); "--" ends
   #  option parsing so a {param} starting with "-" is a value, not a flag.
   #  NEVER put {param} inside ["sh","-c","… {param} …"].
-  # ────────────────────────────────────────────────────────────────────────
+  # ------------------------------------------------------------------------
 
   # [TEMPLATE] disk - free space of a path.  Usage: /rq disk : /var
   disk:
