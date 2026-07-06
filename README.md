@@ -12,6 +12,70 @@ https://github.com/com4pro/hermes-plugin-rq
 It's a config-driven launcher for HTTP requests / webhooks / system commands from
 your chat.
 
+## Why `/rq` exists
+
+Hermes is great at reasoning and orchestration, but some chat actions do not need an LLM at all.
+
+When the task is already well-defined — for example:
+
+- querying an internal API,
+- triggering a webhook,
+- fetching a small operational fact,
+- running a safe predefined command,
+
+sending the request through the full model/tool loop adds avoidable latency, token cost, and rate-limit exposure.
+
+`/rq` provides a **direct, deterministic, zero-LLM path** from chat to action.
+
+It lets you stay in the same interface — **Hermes WebUI, Telegram, or another gateway channel** — while routing a short command such as:
+
+```text
+/rq kb : production server host
+/rq weather : Paris | 3
+```
+
+to a predeclared HTTP target or system command and returning the raw result immediately.
+
+## Typical use cases
+
+`/rq` is a good fit for:
+
+- **internal knowledge lookups**,
+- **private API calls**,
+- **webhook triggers**,
+- **operational shortcuts**,
+- **safe command wrappers**,
+- **low-latency chat actions**.
+
+## Benefits
+
+- **Lower latency** — no LLM round-trip
+- **No token usage on the execution path**
+- **Deterministic behavior** — same input, same configured target
+- **Reduced rate-limit pressure** on model providers
+- **Better fit for simple, repeatable micro-actions**
+
+## Real example: Qdrant lookup
+
+In one real test, a simple local Qdrant lookup performed through the normal MCP + LLM path required:
+
+- **7 LLM calls** with Claude, taking **more than 3 minutes** because the API key was limited to **5 calls/minute**
+- **more than 37 seconds** with Codex
+- **~80 ms** through `/rq`
+
+That means `/rq` was approximately:
+
+- **2,250.00× faster** than the 3-minute Claude-limited path
+- **462.50× faster** than the 37-second Codex path
+
+It also avoided a large amount of unnecessary token usage for a request that could be handled without reasoning.
+
+## In short
+
+Use the full Hermes agent when you need **reasoning, interpretation, or orchestration**.
+
+Use `/rq` when you need **fast, cheap, deterministic chat-to-action routing**.
+
 ## Installation
 
 The plugin is **self-contained**: it ships `rq-targets.example.yaml` and
@@ -56,7 +120,7 @@ Examples:
 /rq kb : production server host
 /rq weather : Paris | 3
 /rq gh : NousResearch | hermes-agent
-/rq notify : Deployment finished ✅
+/rq notify : Deployment finished
 /rq dns : yourdomain.tld | A
 /rq disk : /var                 # (exec type, requires allow_exec: true)
 ```
