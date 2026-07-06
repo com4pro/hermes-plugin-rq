@@ -23,18 +23,64 @@ from __future__ import annotations
 
 import ipaddress
 import json
+import logging
 import os
 import re
 import socket
 import subprocess
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
 # ${VAR} in a target (url/query/headers/body/cmd) expands from the process
 # environment (e.g. secrets from ~/.hermes/.env) - never from the user payload.
 _ENV_RE = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}")
+_LOG = logging.getLogger(__name__)
+
+
+def _trace_enabled(target: dict, defaults: dict) -> bool:
+    return bool(target.get("trace_timing", defaults.get("trace_timing", False)))
+
+
+def _trace_start(target_name: str, target: dict, payload: str, defaults: dict) -> dict:
+    now_ns = time.perf_counter_ns()
+    return {
+        "enabled": _trace_enabled(target, defaults),
+        "target": target_name,
+        "type": (target.get("type") or "http").lower(),
+        "payload_len": len(payload or ""),
+        "start_ns": now_ns,
+        "last_ns": now_ns,
+    }
+
+
+def _trace_mark(trace: dict | None, stage: str, **fields) -> None:
+    if not trace or not trace.get("enabled"):
+        return
+    now_ns = time.perf_counter_ns()
+    elapsed_ms = (now_ns - trace["start_ns"]) / 1_000_000
+    delta_ms = (now_ns - trace["last_ns"]) / 1_000_000
+    trace["last_ns"] = now_ns
+    wall_ts = datetime.now(timezone.utc).isoformat(timespec="microseconds")
+    extras = " ".join(
+        f"{k}={json.dumps(v, ensure_ascii=False, sort_keys=True)}"
+        for k, v in sorted(fields.items())
+    )
+    suffix = f" {extras}" if extras else ""
+    _LOG.info(
+        "rq.trace ts=%s elapsed_ms=%.3f delta_ms=%.3f stage=%s target=%s type=%s payload_len=%d%s",
+        wall_ts,
+        elapsed_ms,
+        delta_ms,
+        stage,
+        trace["target"],
+        trace["type"],
+        trace["payload_len"],
+        suffix,
+    )
 
 
 def _expand_env(s: str) -> str:
@@ -320,11 +366,13 @@ def _subst(obj, values: dict, used: set):
 # --------------------------------------------------------------------------- #
 # Executors
 # --------------------------------------------------------------------------- #
-def _run_http(target: dict, values: dict, defaults: dict) -> str:
+def _run_http(target: dict, values: dict, defaults: dict, trace: dict | None = None) -> str:
     used: set = set()
+    _trace_mark(trace, "http_prepare_start", value_keys=sorted(values))
     url = _subst(target.get("url", ""), values, used)
     blocked = _url_blocked(url, defaults)
     if blocked:
+        _trace_mark(trace, "http_blocked", reason=blocked)
         return blocked
     method = (target.get("method") or "GET").upper()
     query = _subst(dict(target.get("query") or {}), values, used)
@@ -335,9 +383,11 @@ def _run_http(target: dict, values: dict, defaults: dict) -> str:
     extra = {k: v for k, v in values.items() if k not in used}
 
     body = None
+    query_keys = []
     if method == "GET":
         q = dict(query)
         q.update(extra)
+        query_keys = sorted(q)
         if q:
             url = url + ("&" if "?" in url else "?") + urllib.parse.urlencode(q)
     elif send == "json":
@@ -351,39 +401,74 @@ def _run_http(target: dict, values: dict, defaults: dict) -> str:
         body = urllib.parse.urlencode(form).encode("utf-8")
         headers.setdefault("Content-Type", "application/x-www-form-urlencoded")
 
+    parsed = urllib.parse.urlparse(url)
+    _trace_mark(
+        trace,
+        "http_request_ready",
+        method=method,
+        host=parsed.hostname,
+        path=parsed.path,
+        query_keys=query_keys,
+        header_count=len(headers),
+        body_bytes=len(body or b""),
+        timeout=timeout,
+    )
     req = urllib.request.Request(url, data=body, method=method, headers=headers)
     try:
+        _trace_mark(trace, "http_open_start")
         with _http_open(req, timeout, defaults) as resp:
-            return resp.read().decode("utf-8", "replace")
+            first = resp.read(1)
+            _trace_mark(trace, "http_first_byte", status=getattr(resp, "status", None))
+            rest = resp.read()
+            body_bytes = len(first) + len(rest)
+            _trace_mark(trace, "http_body_done", response_bytes=body_bytes)
+            return (first + rest).decode("utf-8", "replace")
     except urllib.error.HTTPError as e:
         if e.code in _REDIRECT_CODES:
+            _trace_mark(trace, "http_redirect_blocked", status=e.code)
             return _t("redirect_blocked", e.code)
         detail = e.read().decode("utf-8", "replace")[:500]
+        _trace_mark(trace, "http_error", status=e.code, detail_len=len(detail))
         return "HTTP %s: %s" % (e.code, detail)
     except Exception as e:
+        _trace_mark(trace, "http_exception", error=str(e))
         return _t("net_error", e)
 
 
-def _run_exec(target: dict, values: dict, defaults: dict, allow_exec: bool) -> str:
+def _run_exec(target: dict, values: dict, defaults: dict, allow_exec: bool, trace: dict | None = None) -> str:
     if not allow_exec:
+        _trace_mark(trace, "exec_disabled")
         return _t("exec_disabled")
     cmd = target.get("cmd")
     if not isinstance(cmd, list) or not cmd:
+        _trace_mark(trace, "exec_invalid")
         return _t("exec_invalid")
     used: set = set()
     argv = [str(_subst(x, values, used)) for x in cmd]  # {param} = literal argument
     timeout = int(target.get("timeout") or defaults.get("timeout") or 20)
+    _trace_mark(trace, "exec_start", argv0=argv[0], argc=len(argv), timeout=timeout)
     try:
         r = subprocess.run(
             argv, shell=False, capture_output=True, text=True, timeout=timeout
         )
     except subprocess.TimeoutExpired:
+        _trace_mark(trace, "exec_timeout", timeout=timeout)
         return _t("cmd_timeout", timeout)
     except FileNotFoundError:
+        _trace_mark(trace, "exec_notfound", argv0=argv[0])
         return _t("cmd_notfound", argv[0])
     except Exception as e:
+        _trace_mark(trace, "exec_exception", error=str(e))
         return _t("exec_error", e)
     out = (r.stdout or "").strip() or (r.stderr or "").strip()
+    _trace_mark(
+        trace,
+        "exec_done",
+        returncode=r.returncode,
+        stdout_len=len(r.stdout or ""),
+        stderr_len=len(r.stderr or ""),
+        output_len=len(out),
+    )
     return out or _t("no_output", r.returncode)
 
 
@@ -474,15 +559,22 @@ def _handle_rq(raw_args: str):
         avail = ", ".join(sorted(targets)) or "(none)"
         return _t("unknown_target", name, avail)
 
+    trace = _trace_start(name, target, payload, defaults)
+    _trace_mark(trace, "request_received", raw_len=len(raw))
+
     values, err = _parse_params(payload, target.get("params") or [], sep)
     if err:
+        _trace_mark(trace, "params_error", error=err)
         return "[%s] %s" % (name, err)
+    _trace_mark(trace, "params_parsed", param_names=target.get("params") or [], value_keys=sorted(values))
 
     if (target.get("type") or "http").lower() == "exec":
-        out = _run_exec(target, values, defaults, bool(cfg.get("allow_exec")))
+        out = _run_exec(target, values, defaults, bool(cfg.get("allow_exec")), trace=trace)
     else:
-        out = _run_http(target, values, defaults)
-    return _truncate(out, defaults)
+        out = _run_http(target, values, defaults, trace=trace)
+    out = _truncate(out, defaults)
+    _trace_mark(trace, "request_done", output_len=len(out))
+    return out
 
 
 def register(ctx) -> None:
@@ -492,3 +584,4 @@ def register(ctx) -> None:
         description="HTTP request & system-command router (zero-LLM): /rq <target> : <payload>.",
         args_hint="<target> : <payload>",
     )
+    

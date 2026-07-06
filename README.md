@@ -80,6 +80,7 @@ targets:
     headers: { ... }                # optional
     send: query | json | form       # POST: json (default form)
     params: [a, b]
+    trace_timing: false             # optional: emit precise timing logs for this target
     # EXEC:
     cmd: ["prog", "-x", "{param}"]  # argv - {param} = literal argument
 ```

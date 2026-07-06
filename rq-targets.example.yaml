@@ -32,6 +32,7 @@ targets:
     method: GET
     url: "http://<your-search-service>:8080/search"
     params: [q]
+    trace_timing: false   # true = precise per-step timing logs in gateway/agent logs
 
   # [TEMPLATE] n8n - trigger a workflow via a Webhook node
   #   Customize: url = your n8n webhook (Production URL); body fields = your workflow inputs.
